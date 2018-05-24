@@ -1,6 +1,8 @@
 Mutlibyte XOR or AES encrypted shellcode
 ============
 
+- Updated by @andrewchiles to remove hardcoded output paths and add additional code templates
+
 Author: Arno0x0x - [@Arno0x0x](http://twitter.com/Arno0x0x)
 
 These little proof of concept are inspired by this blogpost: [Bypass antivirus with 10 lines of code](http://www.attactics.org/2016/03/bypassing-antivirus-with-10-lines-of.html)
@@ -11,6 +13,7 @@ The technique uses two kind of code file:
 2. Various shellcode wrapper, in C++, C# and Python:
 	- `encryptedShellcodeWrapper.cpp` - for now supports **only** XOR encryption
 	- `encryptedShellcodeWrapper.cs` - supports both XOR and AES encryption
+	- `encryptedShellcodeWrapper_inject.cs` - same as above with process injection
 	- `encryptedShellcodeWrapper.py` - supports both XOR and AES encryption
 
 Installation

